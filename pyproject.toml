@@ -1,0 +1,73 @@
+[tool.poetry]
+name = "src"
+version = "0.0.1"
+description = ""
+authors = ["Olamide Adebayo <olamide.adebayo@publicissapient.com>"]
+readme = "README.md"
+license = "MIT"
+
+[tool.poetry.scripts]
+start = "src.main:start"
+
+
+[tool.poetry.dependencies]
+python = "^3.10"
+anthropic = "^0.32.0"
+python-dotenv = "^1.0.1"
+tavily-python = "^0.3.6"
+pillow = "^10.4.0"
+rich = "^13.7.1"
+prompt-toolkit = "^3.0.47"
+pydantic = "^2.8.2"
+
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.8.0"
+isort = "^5.13.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 120
+exclude = '''
+(
+  /(
+      \.eggs         # exclude a few common directories in the
+    | \.git          # root of the project
+    | \.hg
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | _build
+    | buck-out
+    | build
+    | dist
+  )/
+)
+'''
+
+[tool.isort]
+profile = "black"
+skip = [
+    '.eggs', '.git', '.hg', '.mypy_cache', '.nox', '.pants.d', '.tox',
+    '.venv', '_build', 'buck-out', 'build', 'dist', 'node_modules', 'venv',
+]
+skip_gitignore = true
+
+[tool.pytest.ini_options]
+minversion = 7.0
+addopts = "-ra -q -vv --cov=src tests/ --cov-report html --cov-report xml --cov-report term --mypy-extension-hook pytest_mypy_plugins.tests.reveal_type_hook.hook"
+
+[tool.coverage.run]
+branch = true
+relative_files = true
+
+[tool.coverage.report]
+exclude_also = ["if __name__ == .__main__.:",]
+fail_under = 84
+precision = 2
+show_missing = true
+skip_empty = true
+

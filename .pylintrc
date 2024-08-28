@@ -1,0 +1,81 @@
+[MASTER]
+# A comma-separated list of package or module names from where C extensions may be loaded.
+extension-pkg-whitelist=
+
+# Add files or directories to the blacklist. They should be base names, not paths.
+ignore=CVS
+
+# List of plugins (as comma-separated values of python module names) to load, usually to register additional checkers.
+load-plugins=
+
+# Python code to execute, usually for sys.path manipulation such as py.test loading
+init-hook=''
+
+[MESSAGES CONTROL]
+# Only show warnings with the listed confidence levels. Leave empty to show all.
+confidence=
+
+# Disable the message, report, category or checker with the given id(s).
+disable=
+    line-too-long,
+    missing-module-docstring,
+
+# Enable the message, report, category or checker with the given id(s).
+enable=
+
+[REPORTS]
+# Tells whether to display a full report or only the messages.
+reports=no
+
+[REFACTORING]
+# Maximum number of nested blocks for function/method body.
+max-nested-blocks=5
+
+[FORMAT]
+# Maximum number of characters on a single line.
+max-line-length=100
+
+# Regular expression which should only match function or method names.
+function-rgx=[a-z_][a-z0-9_]{2,30}$
+
+# Regular expression which should only match module names.
+module-rgx=(([a-z_][a-z0-9_]*)|([A-Z][a-zA-Z0-9]+))$
+
+# Regular expression which should only match method names.
+method-rgx=[a-z_][a-z0-9_]{2,30}$
+
+# Regular expression which should only match variable names.
+variable-rgx=[a-z_][a-z0-9_]{2,30}$
+
+[BASIC]
+# Naming style matching correct argument names.
+argument-naming-style=snake_case
+
+# Naming style matching correct variable names.
+variable-naming-style=snake_case
+
+# Naming style matching correct constant names.
+const-naming-style=UPPER_CASE
+
+# Naming style matching correct class names.
+class-naming-style=PascalCase
+
+# Naming style matching correct function names.
+function-naming-style=snake_case
+
+# Naming style matching correct method names.
+method-naming-style=snake_case
+
+# Naming style matching correct module names.
+module-naming-style=snake_case
+
+[DESIGN]
+# Maximum number of arguments for function / method.
+max-args=5
+
+# Maximum number of attributes for a class (see R0902).
+max-attributes=10
+
+[EXCEPTIONS]
+# Exceptions that will emit a warning when being caught. Defaults to "Exception"
+overgeneral-exceptions=Exception
