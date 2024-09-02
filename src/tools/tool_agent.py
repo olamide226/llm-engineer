@@ -88,12 +88,7 @@ async def execute_tool(tool_name: str, tool_input: dict[str, Any]) -> dict[str, 
         elif tool_name == "create_file":
             result = create_file(tool_input["path"], tool_input.get("content", ""))
         elif tool_name == "edit_and_apply":
-            result = await edit_and_apply(
-                tool_input["path"],
-                tool_input["instructions"],
-                tool_input["project_context"],
-                is_automode=global_state.automode,
-            )
+            result = await edit_and_apply(tool_input["path"], tool_input["instructions"], tool_input["project_context"])
         elif tool_name == "read_file":
             result = read_file(tool_input["path"])
         elif tool_name == "read_multiple_files":
@@ -116,21 +111,22 @@ async def execute_tool(tool_name: str, tool_input: dict[str, Any]) -> dict[str, 
             result = f"Unknown tool: {tool_name}"
 
         return {"content": result, "is_error": is_error}
-    except KeyError as e:
-        logging.error("Missing required parameter %s for tool %s", str(e), tool_name)
+    except KeyError as exc:
+        logging.error("Missing required parameter %s for tool %s", str(exc), tool_name)
         return {
-            "content": f"Error: Missing required parameter {str(e)} for tool {tool_name}",
+            "content": f"Error: Missing required parameter {str(exc)} for tool {tool_name}",
             "is_error": True,
         }
-    except Exception as e:
-        logging.error("Error executing tool %s: %s", tool_name, str(e))
+    except Exception as exc:
+        logging.error("Error executing tool %s: %s", tool_name, str(exc))
         return {
-            "content": f"Error executing tool {tool_name}: {str(e)}",
+            "content": f"Error executing tool {tool_name}: {str(exc)}",
             "is_error": True,
         }
 
 
 async def chat_with_llm(user_input: str, image_path=None, current_iteration=None, max_iterations=None):
+    """Send the user input to the AI for a response."""
 
     # This function uses MAINMODEL, which maintains context across calls
     current_conversation = []
@@ -383,7 +379,7 @@ async def chat_with_llm(user_input: str, image_path=None, current_iteration=None
                     title="CodeMason's Response to Tool Result",
                     title_align="left",
                     expand=False,
-                    box=SIMPLE
+                    box=SIMPLE,
                 )
             )
             assistant_response += "\n\n" + tool_checker_response

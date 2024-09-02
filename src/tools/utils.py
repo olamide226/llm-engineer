@@ -141,7 +141,7 @@ def display_token_usage():
         )
 
     grand_total = total_input + total_output
-    total_percentage = (total_context_tokens / global_state.MAX_CONTEXT_TOKENS) * 100
+    # total_percentage = (total_context_tokens / global_state.MAX_CONTEXT_TOKENS) * 100
 
     table.add_row(
         "Total",
@@ -154,8 +154,6 @@ def display_token_usage():
     )
 
     console.print(table)
-    # TODO cross-check this
-    console.print(f"total percentage {total_percentage}")
 
 
 def highlight_diff(diff_text):

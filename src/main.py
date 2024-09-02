@@ -1,4 +1,5 @@
 import asyncio
+import signal
 import os
 
 from prompt_toolkit import PromptSession
@@ -21,9 +22,113 @@ async def get_user_input(prompt="You: ") -> str:
     session = PromptSession(style=style)
     return await session.prompt_async(prompt, multiline=False)
 
+async def handle_automode(user_input: str):
+    """Handle the automode command."""
+    try:
+        parts = user_input.split()
+        if len(parts) > 1 and parts[1].isdigit():
+            max_iterations = int(parts[1])
+        else:
+            max_iterations = global_state.MAX_CONTINUATION_ITERATIONS
+
+        automode = True
+        console.print(
+            Panel(
+                f"Entering automode with {max_iterations} iterations. Please provide the goal of the automode.",
+                title_align="left",
+                title="Automode",
+                style="bold yellow",
+            )
+        )
+        console.print(
+            Panel(
+                "Press Ctrl+C at any time to exit the automode loop.",
+                style="bold yellow",
+            )
+        )
+        user_input = await get_user_input()
+
+        iteration_count = 0
+        try:
+            while automode and iteration_count < max_iterations:
+                response, exit_continuation = await chat_with_llm(
+                    user_input,
+                    current_iteration=iteration_count + 1,
+                    max_iterations=max_iterations,
+                )
+
+                if exit_continuation or global_state.CONTINUATION_EXIT_PHRASE in response:
+                    console.print(
+                        Panel(
+                            "Automode completed.",
+                            title_align="left",
+                            title="Automode",
+                            style="green",
+                        )
+                    )
+                    automode = False
+                    
+                else:
+                    console.print(
+                        Panel(
+                            f"Continuation iteration {iteration_count + 1} completed. Press Ctrl+C to exit automode. ",
+                            title_align="left",
+                            title="Automode",
+                            style="yellow",
+                        )
+                    )
+                    user_input = "Continue with the next step. Or STOP by saying 'AUTOMODE_COMPLETE' if you think you've achieved the results established in the original request."
+                iteration_count += 1
+
+                if iteration_count >= max_iterations:
+                    console.print(
+                        Panel(
+                            "Max iterations reached. Exiting automode.",
+                            title_align="left",
+                            title="Automode",
+                            style="bold red",
+                        )
+                    )
+                    automode = False
+        except KeyboardInterrupt:
+            console.print(
+                Panel(
+                    "\nAutomode interrupted by user. Exiting automode.",
+                    title_align="left",
+                    title="Automode",
+                    style="bold red",
+                )
+            )
+            automode = False
+            if global_state.conversation_history and global_state.conversation_history[-1]["role"] == "user":
+                global_state.conversation_history.append(
+                    {
+                        "role": "assistant",
+                        "content": "Automode interrupted. How can I assist you further?",
+                    }
+                )
+    except KeyboardInterrupt:
+        console.print(
+            Panel(
+                "\nAutomode interrupted by user. Exiting automode.",
+                title_align="left",
+                title="Automode",
+                style="bold red",
+            )
+        )
+        automode = False
+        if global_state.conversation_history and global_state.conversation_history[-1]["role"] == "user":
+            global_state.conversation_history.append(
+                {
+                    "role": "assistant",
+                    "content": "Automode interrupted. How can I assist you further?",
+                }
+            )
 
 async def main():
     """Main function to run the chat loop."""
+    loop = asyncio.get_running_loop()
+    loop.add_signal_handler(signal.SIGINT, lambda: print("SIGINT received, shutting down..."))
     console.print(
         Panel(
             "Welcome to the CodeMason Engineer Chat with Multi-Agent and Image Abilities!",
@@ -82,106 +187,7 @@ async def main():
                 )
                 continue
         elif user_input.lower().startswith("automode"):
-            try:
-                parts = user_input.split()
-                if len(parts) > 1 and parts[1].isdigit():
-                    max_iterations = int(parts[1])
-                else:
-                    max_iterations = global_state.MAX_CONTINUATION_ITERATIONS
-
-                automode = True
-                console.print(
-                    Panel(
-                        f"Entering automode with {max_iterations} iterations. Please provide the goal of the automode.",
-                        title_align="left",
-                        title="Automode",
-                        style="bold yellow",
-                    )
-                )
-                console.print(
-                    Panel(
-                        "Press Ctrl+C at any time to exit the automode loop.",
-                        style="bold yellow",
-                    )
-                )
-                user_input = await get_user_input()
-
-                iteration_count = 0
-                try:
-                    while automode and iteration_count < max_iterations:
-                        response, exit_continuation = await chat_with_llm(
-                            user_input,
-                            current_iteration=iteration_count + 1,
-                            max_iterations=max_iterations,
-                        )
-
-                        if exit_continuation or global_state.CONTINUATION_EXIT_PHRASE in response:
-                            console.print(
-                                Panel(
-                                    "Automode completed.",
-                                    title_align="left",
-                                    title="Automode",
-                                    style="green",
-                                )
-                            )
-                            automode = False
-                            
-                        else:
-                            console.print(
-                                Panel(
-                                    f"Continuation iteration {iteration_count + 1} completed. Press Ctrl+C to exit automode. ",
-                                    title_align="left",
-                                    title="Automode",
-                                    style="yellow",
-                                )
-                            )
-                            user_input = "Continue with the next step. Or STOP by saying 'AUTOMODE_COMPLETE' if you think you've achieved the results established in the original request."
-                        iteration_count += 1
-
-                        if iteration_count >= max_iterations:
-                            console.print(
-                                Panel(
-                                    "Max iterations reached. Exiting automode.",
-                                    title_align="left",
-                                    title="Automode",
-                                    style="bold red",
-                                )
-                            )
-                            automode = False
-                except KeyboardInterrupt:
-                    console.print(
-                        Panel(
-                            "\nAutomode interrupted by user. Exiting automode.",
-                            title_align="left",
-                            title="Automode",
-                            style="bold red",
-                        )
-                    )
-                    automode = False
-                    if global_state.conversation_history and global_state.conversation_history[-1]["role"] == "user":
-                        global_state.conversation_history.append(
-                            {
-                                "role": "assistant",
-                                "content": "Automode interrupted. How can I assist you further?",
-                            }
-                        )
-            except KeyboardInterrupt:
-                console.print(
-                    Panel(
-                        "\nAutomode interrupted by user. Exiting automode.",
-                        title_align="left",
-                        title="Automode",
-                        style="bold red",
-                    )
-                )
-                automode = False
-                if global_state.conversation_history and global_state.conversation_history[-1]["role"] == "user":
-                    global_state.conversation_history.append(
-                        {
-                            "role": "assistant",
-                            "content": "Automode interrupted. How can I assist you further?",
-                        }
-                    )
+            await handle_automode(user_input)
 
             console.print(Panel("Exited automode. Returning to regular chat.", style="green"))
         else:
