@@ -124,7 +124,8 @@ async def main():
                                     style="green",
                                 )
                             )
-                            global_state.automode = False
+                            automode = False
+                            
                         else:
                             console.print(
                                 Panel(
@@ -146,7 +147,7 @@ async def main():
                                     style="bold red",
                                 )
                             )
-                            global_state.automode = False
+                            automode = False
                 except KeyboardInterrupt:
                     console.print(
                         Panel(
@@ -156,7 +157,7 @@ async def main():
                             style="bold red",
                         )
                     )
-                    global_state.automode = False
+                    automode = False
                     if global_state.conversation_history and global_state.conversation_history[-1]["role"] == "user":
                         global_state.conversation_history.append(
                             {
@@ -173,7 +174,7 @@ async def main():
                         style="bold red",
                     )
                 )
-                global_state.automode = False
+                automode = False
                 if global_state.conversation_history and global_state.conversation_history[-1]["role"] == "user":
                     global_state.conversation_history.append(
                         {
