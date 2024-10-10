@@ -30,7 +30,8 @@ Follow these steps to set up the CodeMason AI project:
    ```
    cp .env.example .env
    ```
-   note: you need to get an anthropic API key [here](https://console.anthropic.com/settings/keys) and get a tavily KEY [here](https://app.tavily.com/home) 
+   note: you need to get an anthropic API key [here](https://console.anthropic.com/settings/keys) and get a tavily KEY [here](https://app.tavily.com/home)
+   (I'm thinking of switching to the PS LLM APIs now that it supports function calling)
 
 2. Edit the `.env` file and set your configuration variables, including any necessary API keys.
 
