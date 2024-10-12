@@ -1,0 +1,17 @@
+
+graph TD
+    Main[Main Application] --> GlobalState[Global State]
+    Main --> Console[Console Interface]
+    Main --> ChatSession[Chat Session]
+    Main --> ToolAgent[Tool Agent]
+    Main --> Utils[Utilities]
+    
+    ToolAgent --> LLMProviders[LLM Providers]
+    ChatSession --> GlobalState
+    ToolAgent --> GlobalState
+    
+    classDef core fill:#f9f,stroke:#333,stroke-width:4px;
+    classDef support fill:#bbf,stroke:#333,stroke-width:2px;
+    
+    class Main,GlobalState core;
+    class Console,ChatSession,ToolAgent,Utils,LLMProviders support;

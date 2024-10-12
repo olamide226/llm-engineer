@@ -1,0 +1,58 @@
+graph TD
+    User((User)) <--> |Interacts| CI[Console Interface]
+    
+    subgraph Application["CodeMason AI Application"]
+        CI --> |User Input| MA[Main Application]
+        MA --> |Display Output| CI
+        
+        MA <--> |Manage State| GS[(Global State)]
+        MA <--> |Manage Chat| CS[Chat Session]
+        MA <--> |Execute Tools| TA[Tool Agent]
+        MA <--> |Utility Functions| UF[Utilities]
+        
+        subgraph State Management
+            GS --> |Store| CH[Conversation History]
+            GS --> |Track| TT[Token Tracking]
+            GS --> |Manage| FC[File Contents]
+            GS --> |Configure| AC[App Config]
+        end
+        
+        subgraph Tool Management
+            TA --> |Create| CF[Create Folder]
+            TA --> |Create/Edit| CRF[Create/Read File]
+            TA --> |Execute| CE[Code Execution]
+            TA --> |Stop| SP[Stop Process]
+            TA --> |List| LF[List Files]
+            TA --> |Search| WS[Web Search]
+        end
+        
+        TA <--> |LLM Queries| LLM[LLM Providers]
+        TA <--> |File Operations| FS[(File System)]
+        
+        subgraph LLM Integration
+            LLM --> AN[Anthropic]
+            LLM --> OAI[OpenAI]
+            LLM --> AZ[Azure]
+            LLM --> CLLM[Custom LLM]
+        end
+        
+        subgraph Utility Functions
+            UF --> |Reset| RC[Reset Conversation]
+            UF --> |Save| SC[Save Chat]
+            UF --> |Validate| VT[Validate Tools]
+        end
+    end
+    
+    MA <--> |External API Calls| EA[External APIs]
+    
+    classDef external fill:#f96,stroke:#333,stroke-width:2px;
+    classDef core fill:#f9f,stroke:#333,stroke-width:4px;
+    classDef support fill:#bbf,stroke:#333,stroke-width:2px;
+    classDef storage fill:#9cf,stroke:#333,stroke-width:2px;
+    classDef subgraphstyle fill:#ececff,stroke:#9370db,stroke-width:2px;
+    
+    class User,EA external;
+    class MA,GS core;
+    class CI,CS,TA,UF,LLM support;
+    class FS,CH,TT,FC,AC storage;
+    class State_Management,Tool_Management,LLM_Integration,Utility_Functions subgraphstyle;

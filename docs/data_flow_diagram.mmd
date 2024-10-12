@@ -1,0 +1,29 @@
+graph TD
+    User((User)) <--> |Input/Output| CI[Console Interface]
+    CI <--> |User Interactions| MA[Main Application]
+    MA <--> |State Updates| GS[(Global State)]
+    MA <--> |Chat Data| CS[Chat Session]
+    MA <--> |Tool Requests| TA[Tool Agent]
+    TA <--> |LLM Queries/Responses| LLM[LLM Providers]
+    TA --> |File Operations| FS[(File System)]
+    MA <--> |Utility Functions| UF[Utilities]
+    
+    classDef external fill:#f96,stroke:#333,stroke-width:2px;
+    classDef core fill:#f9f,stroke:#333,stroke-width:4px;
+    classDef support fill:#bbf,stroke:#333,stroke-width:2px;
+    classDef storage fill:#9cf,stroke:#333,stroke-width:2px;
+    
+    class User external;
+    class MA,GS core;
+    class CI,CS,TA,UF,LLM support;
+    class FS storage;
+
+    subgraph Application Boundary
+        CI
+        MA
+        GS
+        CS
+        TA
+        UF
+        FS
+    end
