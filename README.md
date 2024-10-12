@@ -30,10 +30,23 @@ Follow these steps to set up the CodeMason AI project:
    ```
    cp .env.example .env
    ```
-   note: you need to get an anthropic API key [here](https://console.anthropic.com/settings/keys) and get a tavily KEY [here](https://app.tavily.com/home)
-   (I'm thinking of switching to the PS LLM APIs now that it supports function calling)
 
 2. Edit the `.env` file and set your configuration variables, including any necessary API keys.
+
+3. In the `src/global_state.py` file, you can configure the LLM provider by setting the `LLM_PROVIDER` variable. The supported options are:
+   - "anthropic" (default)
+   - "litellm"
+   - "custom"
+
+   For example, to use LiteLLM, set:
+   ```python
+   LLM_PROVIDER = "litellm"
+   ```
+
+   note: You need to obtain the appropriate API key for your chosen LLM provider:
+   - For Anthropic, get an API key [here](https://console.anthropic.com/settings/keys)
+   - For custom providers, ensure you have the required authentication credentials
+   You'll also need to get a Tavily API key [here](https://app.tavily.com/home)
 
 ## Usage
 
@@ -63,6 +76,56 @@ To run tests:
 
 ```
 poetry run pytest
+```
+
+## Testing
+
+This project uses pytest for unit and integration testing. To run the tests, follow these steps:
+
+1. Ensure you have installed the project dependencies, including dev dependencies:
+   ```
+   poetry install --with dev
+   ```
+
+2. Run the tests using pytest:
+   ```
+   poetry run pytest
+   ```
+
+This will run all the tests in the `tests/` directory, including both unit and integration tests.
+
+To run only unit tests:
+```
+poetry run pytest tests/unit
+```
+
+To run only integration tests:
+```
+poetry run pytest tests/integration
+```
+
+If you add new functionality to the project, make sure to write corresponding tests in the appropriate test files.
+
+## Extending LLM Provider Support
+
+To add support for a new LLM provider:
+
+1. In `src/models/llm_providers.py`, create a new class that inherits from `LLMProvider`.
+2. Implement the `create_message` method for the new provider.
+3. Update the `get_llm_provider` function to include the new provider.
+4. Add any necessary configuration options to `src/global_state.py`.
+
+For example, to add support for a new provider called "NewLLM":
+
+```python
+class NewLLMProvider(LLMProvider):
+    def create_message(self, model: str, max_tokens: int, system: str, messages: List[Dict[str, Any]], tools: Optional[List[Dict[str, Any]]] = None, tool_choice: Optional[Dict[str, str]] = None) -> Any:
+        # Implement the method according to NewLLM's API
+        pass
+
+# In the get_llm_provider function
+elif provider_name == "newllm":
+    return NewLLMProvider()
 ```
 
 ## Support

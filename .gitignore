@@ -1,5 +1,13 @@
 .venv
 .env
+# chat session files
 Chat*.MD
+
+.coverage
+htmlcov
+coverage.xml
+.pytest_cache
+
+.vscode
 
 **/__pycache__/
