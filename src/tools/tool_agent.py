@@ -1,14 +1,11 @@
 import asyncio
 import json
 import logging
-import time
 from typing import Any
-
-from anthropic import APIError, APIStatusError
 
 from src.console import Markdown, Panel, console, SIMPLE
 from src.global_state import global_state
-from src.models.anthropic_client import client
+from src.providers import get_llm_provider, LLMProvider
 from src.tools.file_system import (
     create_file,
     create_folder,
@@ -52,7 +49,8 @@ async def send_to_ai_for_executing(code: str, execution_result: str):
         IMPORTANT: PROVIDE ONLY YOUR ANALYSIS AND OBSERVATIONS. DO NOT INCLUDE ANY PREFACING STATEMENTS OR EXPLANATIONS OF YOUR ROLE.
         """
 
-        response = client.messages.create(
+        llm_provider: LLMProvider = get_llm_provider(global_state.LLM_PROVIDER)
+        response = llm_provider.create_message(
             model=global_state.CODEEXECUTIONMODEL,
             max_tokens=2000,
             system=system_prompt,
@@ -212,39 +210,22 @@ async def chat_with_llm(user_input: str, image_path=None, current_iteration=None
 
     try:
         # MAINMODEL call, which maintains context
-        response = client.messages.create(
-            model=global_state.MAINMODEL,
+        llm_provider: LLMProvider = get_llm_provider(global_state.LLM_PROVIDER)
+        response = llm_provider.create_message(
+            model=global_state.MAIN_MODEL,
             max_tokens=8000,
             system=update_system_prompt(current_iteration, max_iterations),
-            extra_headers={"anthropic-beta": "max-tokens-3-5-sonnet-2024-07-15"},
             messages=messages,
             tools=TOOL_SCHEMA,
             tool_choice={"type": "auto"},
         )
-        # Update token usage for MAINMODEL
+        # Update token usage for MAIN_MODEL
         global_state.main_model_tokens.input += response.usage.input_tokens
         global_state.main_model_tokens.output += response.usage.output_tokens
-    except APIStatusError as exc:
-        if exc.status_code == 429:
-            console.print(
-                Panel(
-                    "Rate limit exceeded. Retrying after a short delay...",
-                    title="API Error",
-                    style="bold yellow",
-                )
-            )
-            time.sleep(5)
-            return await chat_with_llm(user_input, image_path, current_iteration, max_iterations)
-        else:
-            console.print(Panel(f"API Error: {str(exc)}", title="API Error", style="bold red"))
-            return (
-                "I'm sorry, there was an error communicating with the AI. Please try again.",
-                False,
-            )
-    except APIError as exc:
-        console.print(Panel(f"API Error: {str(exc)}", title="API Error", style="bold red"))
+    except Exception as exc:
+        console.print(Panel(f"LLM Provider Error: {str(exc)}", title="API Error", style="bold red"))
         return (
-            "I'm sorry, there was an error communicating with the AI. Please try again.",
+            "I'm sorry, there was an error communicating with the LLM provider. Please try again.",
             False,
         )
 
@@ -356,11 +337,11 @@ async def chat_with_llm(user_input: str, image_path=None, current_iteration=None
         messages = filtered_conversation_history + current_conversation
 
         try:
-            tool_response = client.messages.create(
-                model=global_state.TOOLCHECKERMODEL,
+            llm_provider: LLMProvider = get_llm_provider(global_state.LLM_PROVIDER)
+            tool_response = llm_provider.create_message(
+                model=global_state.TOOL_CHECKER_MODEL,
                 max_tokens=8000,
                 system=update_system_prompt(current_iteration, max_iterations),
-                extra_headers={"anthropic-beta": "max-tokens-3-5-sonnet-2024-07-15"},
                 messages=messages,
                 tools=TOOL_SCHEMA,
                 tool_choice={"type": "auto"},
@@ -383,8 +364,8 @@ async def chat_with_llm(user_input: str, image_path=None, current_iteration=None
                 )
             )
             assistant_response += "\n\n" + tool_checker_response
-        except APIError as exc:
-            error_message = f"Error in tool response: {str(exc)}"
+        except Exception as exc:
+            error_message = f"Error in LLM provider response: {str(exc)}"
             console.print(Panel(error_message, title="Error", style="bold red"))
             assistant_response += f"\n\n{error_message}"
 

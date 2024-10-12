@@ -20,7 +20,6 @@ from src.global_state import global_state
 from src.tools.chat_session import save_chat
 from src.tools.tool_agent import chat_with_llm
 from src.tools.utils import reset_conversation
-from src.models.llm_providers import get_llm_provider, LLMProvider
 
 
 async def get_user_input(prompt: str = "You: ") -> str:
