@@ -22,7 +22,7 @@ class AnthropicProvider(LLMProvider):
             raise ValueError("ANTHROPIC_API_KEY not found in environment variables")
         self.client = AsyncAnthropic()
 
-    async def create_message(self, model: str, max_tokens: int, system: str, messages: List[Dict[str, Any]], tools: Optional[List[Dict[str, Any]]] = None, tool_choice: Optional[Dict[str, str]] = None) -> Any:
+    async def create_message(self, model: str, system: str, messages: List[Dict[str, Any]], max_tokens: int = 4096, tools: Optional[List[Dict[str, Any]]] = None, tool_choice: Optional[Dict[str, str]] = None) -> Any:
         try:
             return await self.client.messages.create(
             model=model,

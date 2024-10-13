@@ -80,10 +80,10 @@ class GlobalState(BaseModel):
     LLM_PROVIDER: str = "anthropic"
 
     # Models
-    MAIN_MODEL: str = "claude-3-sonnet-20240229"
-    TOOL_CHECKER_MODEL: str = "claude-3-sonnet-20240229"
-    CODE_EDITOR_MODEL: str = "claude-3-sonnet-20240229"
-    CODE_EXECUTION_MODEL: str = "claude-3-sonnet-20240229"
+    MAIN_MODEL: str = "claude-3-5-sonnet-20240620"
+    TOOL_CHECKER_MODEL: str = "claude-3-5-sonnet-20240620"
+    CODE_EDITOR_MODEL: str = "claude-3-5-sonnet-20240620"
+    CODE_EXECUTION_MODEL: str = "claude-3-5-sonnet-20240620"
 
 
 global_state = GlobalState()

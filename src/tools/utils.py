@@ -9,10 +9,10 @@ from PIL import Image
 
 from src.console import ROUNDED, Panel, Syntax, Table, console
 from src.global_state import global_state
-from src.models.anthropic_client import client
 from src.prompts.automode import AUTOMODE_SYSTEM_PROMPT
 from src.prompts.base_system_prompt import BASE_SYSTEM_PROMPT
 from src.global_state import TokenTracking
+from src.providers import LLMProvider, get_llm_provider
 
 
 def update_system_prompt(
@@ -225,17 +225,16 @@ async def generate_edit_instructions(
         """
 
         # Make the API call to CODEEDITORMODEL (context is not maintained except for code_editor_memory)
-        response = client.messages.create(
+        llm_provider: LLMProvider = get_llm_provider(global_state.LLM_PROVIDER)
+        response = await llm_provider.create_message(
             model=global_state.CODEEDITORMODEL,
-            max_tokens=8000,
             system=system_prompt,
-            extra_headers={"anthropic-beta": "max-tokens-3-5-sonnet-2024-07-15"},
             messages=[
                 {
                     "role": "user",
                     "content": "Generate SEARCH/REPLACE blocks for the necessary changes.",
                 }
-            ],
+            ]
         )
         # Update token usage for code editor
         global_state.code_editor_tokens.input += response.usage.input_tokens

@@ -8,6 +8,8 @@ htmlcov
 coverage.xml
 .pytest_cache
 
+codemason_projects
+
 .vscode
 
 **/__pycache__/

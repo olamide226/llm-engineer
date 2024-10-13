@@ -50,9 +50,8 @@ async def send_to_ai_for_executing(code: str, execution_result: str):
         """
 
         llm_provider: LLMProvider = get_llm_provider(global_state.LLM_PROVIDER)
-        response = llm_provider.create_message(
+        response = await llm_provider.create_message(
             model=global_state.CODEEXECUTIONMODEL,
-            max_tokens=2000,
             system=system_prompt,
             messages=[
                 {
@@ -60,6 +59,7 @@ async def send_to_ai_for_executing(code: str, execution_result: str):
                     "content": f"Analyze this code execution from the 'code_execution_env' virtual environment:\n\nCode:\n{code}\n\nExecution Result:\n{execution_result}",
                 }
             ],
+            max_tokens=2000,
         )
 
         # Update token usage for code execution
@@ -211,9 +211,8 @@ async def chat_with_llm(user_input: str, image_path=None, current_iteration=None
     try:
         # MAINMODEL call, which maintains context
         llm_provider: LLMProvider = get_llm_provider(global_state.LLM_PROVIDER)
-        response = llm_provider.create_message(
+        response = await llm_provider.create_message(
             model=global_state.MAIN_MODEL,
-            max_tokens=8000,
             system=update_system_prompt(current_iteration, max_iterations),
             messages=messages,
             tools=TOOL_SCHEMA,
@@ -338,9 +337,8 @@ async def chat_with_llm(user_input: str, image_path=None, current_iteration=None
 
         try:
             llm_provider: LLMProvider = get_llm_provider(global_state.LLM_PROVIDER)
-            tool_response = llm_provider.create_message(
+            tool_response = await llm_provider.create_message(
                 model=global_state.TOOL_CHECKER_MODEL,
-                max_tokens=8000,
                 system=update_system_prompt(current_iteration, max_iterations),
                 messages=messages,
                 tools=TOOL_SCHEMA,

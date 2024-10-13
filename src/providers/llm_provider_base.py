@@ -6,7 +6,7 @@ class LLMProvider(ABC):
     Abstract base class for LLM providers.
     """
     @abstractmethod
-    async def create_message(self, model: str, max_tokens: int, system: str, messages: List[Dict[str, Any]], tools: Optional[List[Dict[str, Any]]] = None, tool_choice: Optional[Dict[str, str]] = None) -> Any:
+    async def create_message(self, model: str, system: str, messages: List[Dict[str, Any]], max_tokens: int = 8000, tools: Optional[List[Dict[str, Any]]] = None, tool_choice: Optional[Dict[str, str]] = None) -> Any:
         """
         Asynchronously creates a message using the specified model and parameters.
 

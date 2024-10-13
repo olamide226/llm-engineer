@@ -1,12 +1,12 @@
-from providers.llm_provider_base import LLMProvider
-from src.providers.anthropic import AnthropicProvider
-from src.providers.litellm import LiteLLMProvider
-from src.providers.custom import CustomEndpointProvider
+from .llm_provider_base import LLMProvider
+from .anthropic import AnthropicProvider
+from .litellm import LiteLLMProvider
+from .custom import CustomEndpointProvider
 
 
 _provider_cache: dict[str, LLMProvider] = {}
 
-async def get_llm_provider(provider_name: str, **kwargs) -> LLMProvider:
+def get_llm_provider(provider_name: str, **kwargs) -> LLMProvider:
     """
     Retrieve an instance of an LLMProvider based on the given provider name.
 
