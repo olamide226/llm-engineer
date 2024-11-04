@@ -40,6 +40,7 @@ async def get_user_input(prompt: str = "You: ") -> str:
     session = PromptSession(style=style)
     return await session.prompt_async(prompt, multiline=False)
 
+
 async def handle_autonomous_mode(user_input: str):
     """
     Handle the autonomous mode command and execution.
@@ -154,17 +155,18 @@ async def handle_autonomous_mode(user_input: str):
                 }
             )
 
+
 async def main():
     """
     Main function to run the chat loop.
-    
+
     This function sets up signal handling, displays welcome messages,
     and manages the main chat loop, including handling various user commands.
     """
     loop = asyncio.get_running_loop()
     # Set up signal handler for graceful shutdown
     loop.add_signal_handler(signal.SIGINT, lambda: print("SIGINT received, shutting down..."))
-    
+
     # Display welcome messages and instructions
     console.print(
         Panel(
@@ -178,7 +180,9 @@ async def main():
     console.print("Type 'automode [number]' to enter Autonomous mode with a specific number of iterations.")
     console.print("Type 'reset' to clear the conversation history.")
     console.print("Type 'save chat' to save the conversation to a Markdown file.")
-    console.print("While in autonomous mode, press Ctrl+C at any time to exit the autonomous mode to return to regular chat.")
+    console.print(
+        "While in autonomous mode, press Ctrl+C at any time to exit the autonomous mode to return to regular chat."
+    )
 
     while True:
         user_input = await get_user_input()
@@ -238,11 +242,14 @@ async def main():
 def start():
     """
     Start the chat loop.
-    
+
     This function initializes the asyncio event loop and handles any KeyboardInterrupt
     exceptions to ensure a graceful shutdown of the application.
     """
     try:
+        from src.config import config
+        global_state.MAIN_MODEL = config.model_name
+        global_state.LLM_PROVIDER = config.model_provider
         asyncio.run(main())
     except KeyboardInterrupt:
         console.print(

@@ -6,13 +6,15 @@ import re
 from typing import Optional
 
 from PIL import Image
+import httpx
 
 from src.console import ROUNDED, Panel, Syntax, Table, console
-from src.global_state import global_state
+from src.global_state import TokenTracking, global_state
 from src.prompts.automode import AUTOMODE_SYSTEM_PROMPT
 from src.prompts.base_system_prompt import BASE_SYSTEM_PROMPT
-from src.global_state import TokenTracking
-from src.providers import LLMProvider, get_llm_provider
+from src.providers import get_llm_provider
+from src.config import config
+from dotenv import load_dotenv, set_key
 
 
 def update_system_prompt(
@@ -225,26 +227,26 @@ async def generate_edit_instructions(
         """
 
         # Make the API call to CODEEDITORMODEL (context is not maintained except for code_editor_memory)
-        llm_provider: LLMProvider = get_llm_provider(global_state.LLM_PROVIDER)
+        llm_provider = get_llm_provider(global_state.LLM_PROVIDER)
         response = await llm_provider.create_message(
-            model=global_state.CODEEDITORMODEL,
+            model=global_state.MAIN_MODEL,
             system=system_prompt,
             messages=[
                 {
                     "role": "user",
                     "content": "Generate SEARCH/REPLACE blocks for the necessary changes.",
                 }
-            ]
+            ],
         )
         # Update token usage for code editor
-        global_state.code_editor_tokens.input += response.usage.input_tokens
-        global_state.code_editor_tokens.output += response.usage.output_tokens
+        global_state.code_editor_tokens.input += response.usage.prompt_tokens
+        global_state.code_editor_tokens.output += response.usage.completion_tokens
 
         # Parse the response to extract SEARCH/REPLACE blocks
-        edit_instructions = parse_search_replace_blocks(response.content[0].text)
+        edit_instructions = parse_search_replace_blocks(response.choices[0].message.content)
 
         # Update code editor memory (this is the only part that maintains some context between calls)
-        global_state.code_editor_memory.append(f"Edit Instructions for {file_path}:\n{response.content[0].text}")
+        global_state.code_editor_memory.append(f"Edit Instructions for {file_path}:\n{response.choices[0].message.content}")
 
         # Add the file to code_editor_files set
         global_state.code_editor_files.add(file_path)
@@ -282,3 +284,41 @@ def generate_diff(original, new, path):
     highlighted_diff = highlight_diff(diff_text)
 
     return highlighted_diff
+
+async def refresh_token() -> None:
+    CUSTOM_REFRESH_TOKEN_URL = "/api/v1/auth/refreshtoken"
+    url = config.custom_api_host + CUSTOM_REFRESH_TOKEN_URL
+    headers = {
+        "Authorization": "Bearer " + config.custom_api_token,
+        "app-key": config.custom_app_key,
+    }
+    cookies = {
+        'rt': config.custom_refresh_token,
+    }
+
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url, headers=headers, cookies=cookies)
+        print(response.request.headers)
+        response.raise_for_status()  # Raise an exception for HTTP errors
+        
+        # Extract Set-Cookie header
+        auth_tokens: str = response.headers.get('Set-Cookie')
+
+        # Parse Set-Cookie header to find rt token
+        ref_token = next(
+            (item.split('=')[1] for item in auth_tokens.split(';') if item.strip().startswith('rt=')),
+            None
+        )
+        # Extract accessToken from JSON response
+        response_data = response.json()
+        auth_token = response_data.get('accessToken')
+
+        # Update configuration
+        config.custom_refresh_token = ref_token
+        config.custom_api_token = auth_token
+
+        # Write the updated values back to the .env file
+        env_file = ".env"
+        load_dotenv(env_file)
+        set_key(env_file, 'CUSTOM_API_TOKEN', auth_token)
+        set_key(env_file, 'CUSTOM_REFRESH_TOKEN', ref_token)

@@ -1,9 +1,8 @@
 import os
 from functools import lru_cache
 
-from tavily import TavilyClient
-
 from dotenv import load_dotenv
+from tavily import TavilyClient
 
 # Load environment variables from .env file
 load_dotenv()
