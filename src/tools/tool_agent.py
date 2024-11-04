@@ -1,28 +1,29 @@
 import asyncio
 import json
 import logging
-from typing import Any
+from typing import Any, Dict, List
 
-from src.console import Markdown, Panel, console, SIMPLE
+from src.console import SIMPLE, Markdown, Panel, console
 from src.global_state import global_state
-from src.providers import get_llm_provider, LLMProvider
+from src.providers import get_llm_provider
 from src.tools.file_system import (
     create_file,
     create_folder,
+    edit_and_apply,
     execute_code,
     list_files,
     read_file,
     read_multiple_files,
     stop_process,
 )
-from src.tools.web_search import tavily_search
-from src.tools.file_system import edit_and_apply
-from src.tools.tool_schemas import TOOL_SCHEMA
+from src.tools.tool_schemas.litellm_tool_schema import TOOL_SCHEMA
 from src.tools.utils import (
     display_token_usage,
     encode_image_to_base64,
     update_system_prompt,
 )
+from src.tools.web_search import tavily_search
+from src.types.litellm import ChatCompletionMessageToolCall, Message, ModelResponse
 
 
 async def send_to_ai_for_executing(code: str, execution_result: str):
@@ -49,9 +50,9 @@ async def send_to_ai_for_executing(code: str, execution_result: str):
         IMPORTANT: PROVIDE ONLY YOUR ANALYSIS AND OBSERVATIONS. DO NOT INCLUDE ANY PREFACING STATEMENTS OR EXPLANATIONS OF YOUR ROLE.
         """
 
-        llm_provider: LLMProvider = get_llm_provider(global_state.LLM_PROVIDER)
+        llm_provider, _ = get_llm_provider(global_state.LLM_PROVIDER)
         response = await llm_provider.create_message(
-            model=global_state.CODEEXECUTIONMODEL,
+            model=global_state.MAIN_MODEL,
             system=system_prompt,
             messages=[
                 {
@@ -130,53 +131,16 @@ async def chat_with_llm(user_input: str, image_path=None, current_iteration=None
     current_conversation = []
 
     if image_path:
-        console.print(
-            Panel(
-                f"Processing image at path: {image_path}",
-                title_align="left",
-                title="Image Processing",
-                expand=False,
-                style="yellow",
-            )
-        )
-        image_base64 = encode_image_to_base64(image_path)
-
-        if image_base64.startswith("Error"):
+        try:
+            await handle_image_processing(image_path, user_input, current_conversation)
+        except Exception as exc:
             console.print(
-                Panel(
-                    f"Error encoding image: {image_base64}",
-                    title="Error",
-                    style="bold red",
-                )
+                Panel(f"Error processing image: {str(exc)}", title="Image Processing Error", style="bold red")
             )
             return (
-                "I'm sorry, there was an error processing the image. Please try again.",
+                str(exc),
                 False,
             )
-
-        image_message = {
-            "role": "user",
-            "content": [
-                {
-                    "type": "image",
-                    "source": {
-                        "type": "base64",
-                        "media_type": "image/jpeg",
-                        "data": image_base64,
-                    },
-                },
-                {"type": "text", "text": f"User input for image: {user_input}"},
-            ],
-        }
-        current_conversation.append(image_message)
-        console.print(
-            Panel(
-                "Image message added to conversation history",
-                title_align="left",
-                title="Image Added",
-                style="green",
-            )
-        )
     else:
         current_conversation.append({"role": "user", "content": user_input})
 
@@ -210,17 +174,16 @@ async def chat_with_llm(user_input: str, image_path=None, current_iteration=None
 
     try:
         # MAINMODEL call, which maintains context
-        llm_provider: LLMProvider = get_llm_provider(global_state.LLM_PROVIDER)
-        response = await llm_provider.create_message(
+        response: ModelResponse = await create_message(
             model=global_state.MAIN_MODEL,
             system=update_system_prompt(current_iteration, max_iterations),
             messages=messages,
             tools=TOOL_SCHEMA,
-            tool_choice={"type": "auto"},
+            tool_choice="auto",
         )
         # Update token usage for MAIN_MODEL
-        global_state.main_model_tokens.input += response.usage.input_tokens
-        global_state.main_model_tokens.output += response.usage.output_tokens
+        global_state.main_model_tokens.input += response.usage.prompt_tokens
+        global_state.main_model_tokens.output += response.usage.completion_tokens
     except Exception as exc:
         console.print(Panel(f"LLM Provider Error: {str(exc)}", title="API Error", style="bold red"))
         return (
@@ -230,15 +193,14 @@ async def chat_with_llm(user_input: str, image_path=None, current_iteration=None
 
     assistant_response = ""
     exit_continuation = False
-    tool_uses = []
+    tool_uses: List[ChatCompletionMessageToolCall] = []
 
-    for content_block in response.content:
-        if content_block.type == "text":
-            assistant_response += content_block.text
-            if global_state.CONTINUATION_EXIT_PHRASE in content_block.text:
-                exit_continuation = True
-        elif content_block.type == "tool_use":
-            tool_uses.append(content_block)
+    if response.choices[0].message.content:
+        assistant_response += response.choices[0].message.content
+        if global_state.CONTINUATION_EXIT_PHRASE in response.choices[0].message.content:
+            exit_continuation = True
+    elif response.choices[0].message.tool_calls:
+        tool_uses = response.choices[0].message.tool_calls
 
     console.print(
         Panel(
@@ -265,9 +227,49 @@ async def chat_with_llm(user_input: str, image_path=None, current_iteration=None
         )
     )
 
+    assistant_response = await handle_tool_use(
+        tool_uses, current_conversation, filtered_conversation_history, response.choices[0].message, assistant_response, current_iteration, max_iterations
+    )
+    if assistant_response:
+        current_conversation.append({"role": "assistant", "content": assistant_response})
+
+    global_state.conversation_history = messages + [{"role": "assistant", "content": assistant_response}]
+
+    # Display token usage at the end
+    display_token_usage()
+
+    return assistant_response, exit_continuation
+
+
+# Example usage of create_message function
+async def create_message(
+    model: str,
+    system: str,
+    messages: List[Dict[str, Any]],
+    tools: List[Dict[str, Any]] = None,
+    tool_choice: str = "auto",
+) -> ModelResponse:
+    llm_provider = get_llm_provider(global_state.LLM_PROVIDER)
+    response = await llm_provider.create_message(
+        model=model, system=system, messages=messages, tools=tools, tool_choice=tool_choice
+    )
+
+    return response
+
+
+async def handle_tool_use(
+    tool_uses: List[ChatCompletionMessageToolCall],
+    current_conversation: List[Dict[str, Any]],
+    filtered_conversation_history: List[Dict[str, Any]],
+    result_message: Message,
+    assistant_response: str,
+    current_iteration: int = None,
+    max_iterations: int = None,
+):
+    """Handle the tool uses in the response."""
     for tool_use in tool_uses:
-        tool_name = tool_use.name
-        tool_input = tool_use.input
+        tool_name = tool_use.function.name
+        tool_input = json.loads(tool_use.function.arguments)
         tool_use_id = tool_use.id
 
         console.print(Panel(f"Tool Used: {tool_name}", style="green"))
@@ -292,36 +294,24 @@ async def chat_with_llm(user_input: str, image_path=None, current_iteration=None
                     style="green",
                 )
             )
+        result_message.content = ""
+        current_conversation.append(result_message.model_dump())
 
         current_conversation.append(
             {
-                "role": "assistant",
-                "content": [
+                "role": "tool",
+                "content": json.dumps(
                     {
-                        "type": "tool_use",
-                        "id": tool_use_id,
-                        "name": tool_name,
-                        "input": tool_input,
-                    }
-                ],
-            }
-        )
-
-        current_conversation.append(
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "type": "tool_result",
-                        "tool_use_id": tool_use_id,
                         "content": tool_result["content"],
                         "is_error": tool_result["is_error"],
                     }
-                ],
+                ),
+                "name": tool_name,
+                "tool_call_id": tool_use_id,
             }
         )
 
-        # Update the file_contents dictionary if applicable
+        # Update the file_contents dictionary if applicable TODO - Refactor this
         if tool_name in ["create_file", "edit_and_apply", "read_file"] and not tool_result["is_error"]:
             if "path" in tool_input:
                 file_path = tool_input["path"]
@@ -334,24 +324,24 @@ async def chat_with_llm(user_input: str, image_path=None, current_iteration=None
                     pass
 
         messages = filtered_conversation_history + current_conversation
+        console.print(messages)
 
         try:
-            llm_provider: LLMProvider = get_llm_provider(global_state.LLM_PROVIDER)
-            tool_response = await llm_provider.create_message(
+            tool_response = await create_message(
                 model=global_state.TOOL_CHECKER_MODEL,
                 system=update_system_prompt(current_iteration, max_iterations),
                 messages=messages,
                 tools=TOOL_SCHEMA,
-                tool_choice={"type": "auto"},
+                tool_choice="auto",
             )
             # Update token usage for tool checker
-            global_state.tool_checker_tokens.input += tool_response.usage.input_tokens
-            global_state.tool_checker_tokens.output += tool_response.usage.output_tokens
+            global_state.tool_checker_tokens.input += tool_response.usage.prompt_tokens
+            global_state.tool_checker_tokens.output += tool_response.usage.completion_tokens
 
             tool_checker_response = ""
-            for tool_content_block in tool_response.content:
-                if tool_content_block.type == "text":
-                    tool_checker_response += tool_content_block.text
+            
+            if tool_response.choices[0].message.content:
+                tool_checker_response += tool_response.choices[0].message.content
             console.print(
                 Panel(
                     Markdown(tool_checker_response),
@@ -366,13 +356,51 @@ async def chat_with_llm(user_input: str, image_path=None, current_iteration=None
             error_message = f"Error in LLM provider response: {str(exc)}"
             console.print(Panel(error_message, title="Error", style="bold red"))
             assistant_response += f"\n\n{error_message}"
+    return assistant_response
 
-    if assistant_response:
-        current_conversation.append({"role": "assistant", "content": assistant_response})
 
-    global_state.conversation_history = messages + [{"role": "assistant", "content": assistant_response}]
+async def handle_image_processing(image_path: str, user_input: str, current_conversation: List[Dict[str, Any]]):
+    console.print(
+        Panel(
+            f"Processing image at path: {image_path}",
+            title_align="left",
+            title="Image Processing",
+            expand=False,
+            style="yellow",
+        )
+    )
+    image_base64 = encode_image_to_base64(image_path)
 
-    # Display token usage at the end
-    display_token_usage()
+    if image_base64.startswith("Error"):
+        console.print(
+            Panel(
+                f"Error encoding image: {image_base64}",
+                title="Error",
+                style="bold red",
+            )
+        )
+        raise Exception("I'm sorry, there was an error processing the image. Please try again.")
 
-    return assistant_response, exit_continuation
+    image_message = {
+        "role": "user",
+        "content": [
+            {
+                "type": "image",
+                "source": {
+                    "type": "base64",
+                    "media_type": "image/jpeg",
+                    "data": image_base64,
+                },
+            },
+            {"type": "text", "text": f"User input for image: {user_input}"},
+        ],
+    }
+    current_conversation.append(image_message)
+    console.print(
+        Panel(
+            "Image message added to conversation history",
+            title_align="left",
+            title="Image Added",
+            style="green",
+        )
+    )
