@@ -1,12 +1,12 @@
-from .llm_provider_base import LLMProvider
-from .anthropic import AnthropicProvider
-from .litellm import LiteLLMProvider
-from .custom import CustomEndpointProvider
-
+from src.providers.anthropic import AnthropicProvider
+from src.providers.custom import CustomEndpointProvider
+from src.providers.litellm import LiteLLMProvider
+from src.providers.llm_provider_base import LLMProvider
 
 _provider_cache: dict[str, LLMProvider] = {}
 
-def get_llm_provider(provider_name: str, **kwargs) -> LLMProvider:
+
+def get_llm_provider(provider_name: str, **kwargs):
     """
     Retrieve an instance of an LLMProvider based on the given provider name.
 
@@ -32,22 +32,22 @@ def get_llm_provider(provider_name: str, **kwargs) -> LLMProvider:
         - "custom_endpoint": Returns an instance of CustomEndpointProvider with the
                              specified endpoint URL.
     """
+    # TODO: Move to config validation at the start of the program
     if provider_name in _provider_cache:
         return _provider_cache[provider_name]
 
     if provider_name == "anthropic":
         provider = AnthropicProvider()
-    elif provider_name == "litellm":
+    elif provider_name == "custom":
         provider = LiteLLMProvider()
-    elif provider_name == "custom_endpoint":
-        endpoint_url = kwargs.get("endpoint_url")
-        if not endpoint_url:
-            raise ValueError("endpoint_url is required for custom_endpoint provider")
-        provider = CustomEndpointProvider(endpoint_url)
     else:
         raise ValueError(f"Unknown provider: {provider_name}")
 
     _provider_cache[provider_name] = provider
     return provider
 
-__all__ = ["get_llm_provider", "LLMProvider", ]
+
+__all__ = [
+    "get_llm_provider",
+    "LLMProvider",
+]

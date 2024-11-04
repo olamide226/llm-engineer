@@ -1,12 +1,24 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional
 
+from src.types.litellm import ModelResponse
+
+
 class LLMProvider(ABC):
     """
     Abstract base class for LLM providers.
     """
+
     @abstractmethod
-    async def create_message(self, model: str, system: str, messages: List[Dict[str, Any]], max_tokens: int = 8000, tools: Optional[List[Dict[str, Any]]] = None, tool_choice: Optional[Dict[str, str]] = None) -> Any:
+    async def create_message(
+        self,
+        model: str,
+        system: str,
+        messages: List[Dict[str, Any]],
+        max_tokens: int = 8000,
+        tools: Optional[List[Dict[str, Any]]] = None,
+        tool_choice: Optional[Dict[str, str]] = None,
+    ) -> ModelResponse:
         """
         Asynchronously creates a message using the specified model and parameters.
 
