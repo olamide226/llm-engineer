@@ -1,6 +1,24 @@
-"""schemas for the tools used in the project"""
+from typing import Dict, List, TypedDict
 
-TOOL_SCHEMA = [
+
+class ToolParameter(TypedDict):
+    type: str
+    description: str
+
+
+class ToolInputSchema(TypedDict):
+    type: str
+    properties: Dict[str, ToolParameter]
+    required: List[str]
+
+
+class AnthropicTool(TypedDict):
+    name: str
+    description: str
+    input_schema: ToolInputSchema
+
+
+TOOL_SCHEMA: List[AnthropicTool] = [
     {
         "name": "create_folder",
         "description": "Create a new folder at the specified path. This tool should be used when you need to create a new directory in the project structure. It will create all necessary parent directories if they don't exist. The tool will return a success message if the folder is created or already exists, and an error message if there's a problem creating the folder.",
