@@ -7,7 +7,8 @@ a singleton pattern to ensure a single instance of the global state is maintaine
 throughout the application's lifecycle.
 """
 
-from typing import Dict, List, Set, Any
+from typing import Any, Dict, List, Set
+
 from pydantic import BaseModel
 
 
@@ -35,6 +36,7 @@ class TokenTracking(BaseModel):
     """
     Model for tracking input and output tokens for various components.
     """
+
     input: int = 0
     output: int = 0
 
@@ -47,6 +49,7 @@ class GlobalState(BaseModel):
     This class manages various aspects of the application's state, including
     token tracking, conversation history, file contents, and configuration settings.
     """
+
     # Token tracking variables
     main_model_tokens: TokenTracking = TokenTracking()
     tool_checker_tokens: TokenTracking = TokenTracking()
@@ -77,13 +80,14 @@ class GlobalState(BaseModel):
     MAX_CONTEXT_TOKENS: int = 200000  # Maximum number of tokens for context
 
     # LLM provider configuration (options: "anthropic", "litellm", "custom")
-    LLM_PROVIDER: str = "anthropic"
+    LLM_PROVIDER: str = "custom"
 
     # Models
-    MAIN_MODEL: str = "claude-3-5-sonnet-20240620"
-    TOOL_CHECKER_MODEL: str = "claude-3-5-sonnet-20240620"
-    CODE_EDITOR_MODEL: str = "claude-3-5-sonnet-20240620"
-    CODE_EXECUTION_MODEL: str = "claude-3-5-sonnet-20240620"
+    MAIN_MODEL: str = "gpt-4o"
+    TOOL_CHECKER_MODEL: str = "gpt-4o"
+    CODE_EDITOR_MODEL: str = "gpt-4o"
+    CODE_EXECUTION_MODEL: str = "gpt-4o"
+
 
 
 global_state = GlobalState()
