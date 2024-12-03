@@ -4,8 +4,8 @@ from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
 
-from src.global_state import global_state
-from src.tools.file_system import (
+from llm_engineer.global_state import global_state
+from llm_engineer.tools.file_system import (
     apply_edits,
     create_file,
     create_folder,
@@ -27,20 +27,20 @@ def mock_global_state():
     global_state.file_contents = {}
     global_state.running_processes = {}
 
-@patch("src.tools.file_system.venv.create")
-@patch("src.tools.file_system.os.path.exists", return_value=False)
-@patch("src.tools.file_system.os.getcwd", return_value="/test")
+@patch("llm_engineer.tools.file_system.venv.create")
+@patch("llm_engineer.tools.file_system.os.path.exists", return_value=False)
+@patch("llm_engineer.tools.file_system.os.getcwd", return_value="/test")
 def test_setup_virtual_environment(mock_getcwd, mock_exists, mock_create):
     venv_path, activate_script = setup_virtual_environment()
     assert venv_path == "/test/code_execution_env"
     assert activate_script == "/test/code_execution_env/bin/activate"
 
-@patch("src.tools.file_system.os.makedirs")
+@patch("llm_engineer.tools.file_system.os.makedirs")
 def test_create_folder(mock_makedirs):
     result = create_folder("/test/folder")
     assert result == "Folder created: /test/folder"
 
-@patch("src.tools.file_system.os.makedirs", side_effect=Exception("Error"))
+@patch("llm_engineer.tools.file_system.os.makedirs", side_effect=Exception("Error"))
 def test_create_folder_error(mock_makedirs):
     result = create_folder("/test/folder")
     assert result == "Error creating folder: Error"
@@ -58,9 +58,9 @@ def test_create_file_error(mock_open):
     result = create_file("/test/file.txt", "content")
     assert result == "Error creating file: Error"
 
-@patch("src.tools.file_system.setup_virtual_environment", return_value=("/test/env", "/test/env/bin/activate"))
-@patch("src.tools.file_system.asyncio.create_subprocess_shell")
-@patch("src.tools.file_system.asyncio.wait_for", side_effect=asyncio.TimeoutError)
+@patch("llm_engineer.tools.file_system.setup_virtual_environment", return_value=("/test/env", "/test/env/bin/activate"))
+@patch("llm_engineer.tools.file_system.asyncio.create_subprocess_shell")
+@patch("llm_engineer.tools.file_system.asyncio.wait_for", side_effect=asyncio.TimeoutError)
 def test_execute_code_timeout(mock_wait_for, mock_create_subprocess_shell, mock_setup_virtual_environment):
     async def run_test():
         process_id, execution_result = await execute_code("print('Hello')")
@@ -96,18 +96,18 @@ def test_read_multiple_files_error(mock_open):
     assert "Error reading file '/test/file1.txt': Error" in result
     assert "Error reading file '/test/file2.txt': Error" in result
 
-@patch("src.tools.file_system.os.listdir", return_value=["file1.txt", "file2.txt"])
+@patch("llm_engineer.tools.file_system.os.listdir", return_value=["file1.txt", "file2.txt"])
 def test_list_files(mock_listdir):
     result = list_files("/test")
     assert result == "file1.txt\nfile2.txt"
 
-@patch("src.tools.file_system.os.listdir", side_effect=Exception("Error"))
+@patch("llm_engineer.tools.file_system.os.listdir", side_effect=Exception("Error"))
 def test_list_files_error(mock_listdir):
     result = list_files("/test")
     assert result == "Error listing files: Error"
 
-@patch("src.tools.file_system.os.killpg")
-@patch("src.tools.file_system.os.getpgid", return_value=1234)
+@patch("llm_engineer.tools.file_system.os.killpg")
+@patch("llm_engineer.tools.file_system.os.getpgid", return_value=1234)
 def test_stop_process(mock_getpgid, mock_killpg, mock_global_state):
     global_state.running_processes["process_0"] = MagicMock(pid=1234)
     result = stop_process("process_0")
@@ -117,8 +117,8 @@ def test_stop_process_not_found(mock_global_state):
     result = stop_process("process_0")
     assert result == "No running process found with ID process_0."
 
-@patch("src.tools.file_system.generate_edit_instructions", return_value=json.dumps([{"search": "old", "replace": "new"}]))
-@patch("src.tools.file_system.apply_edits", return_value=("new content", True, ""))
+@patch("llm_engineer.tools.file_system.generate_edit_instructions", return_value=json.dumps([{"search": "old", "replace": "new"}]))
+@patch("llm_engineer.tools.file_system.apply_edits", return_value=("new content", True, ""))
 @patch("builtins.open", new_callable=mock_open, read_data="old content")
 def test_edit_and_apply(mock_open, mock_apply_edits, mock_generate_edit_instructions, mock_global_state):
     async def run_test():
@@ -127,8 +127,8 @@ def test_edit_and_apply(mock_open, mock_apply_edits, mock_generate_edit_instruct
 
     asyncio.run(run_test())
 
-@patch("src.tools.file_system.generate_edit_instructions", return_value=json.dumps([{"search": "old", "replace": "new"}]))
-@patch("src.tools.file_system.apply_edits", return_value=("new content", False, ""))
+@patch("llm_engineer.tools.file_system.generate_edit_instructions", return_value=json.dumps([{"search": "old", "replace": "new"}]))
+@patch("llm_engineer.tools.file_system.apply_edits", return_value=("new content", False, ""))
 @patch("builtins.open", new_callable=mock_open, read_data="old content")
 def test_edit_and_apply_no_changes(mock_open, mock_apply_edits, mock_generate_edit_instructions, mock_global_state):
     async def run_test():
@@ -137,7 +137,7 @@ def test_edit_and_apply_no_changes(mock_open, mock_apply_edits, mock_generate_ed
 
     asyncio.run(run_test())
 
-@patch("src.tools.file_system.generate_diff", return_value="diff")
+@patch("llm_engineer.tools.file_system.generate_diff", return_value="diff")
 @patch("builtins.open", new_callable=mock_open, read_data="old content")
 def test_apply_edits(mock_generate_diff, mock_open):
     original_content = "old content"
@@ -150,7 +150,7 @@ def test_apply_edits(mock_generate_diff, mock_open):
 
     asyncio.run(run_test())
 
-@patch("src.tools.file_system.generate_diff", side_effect=Exception("Error"))
+@patch("llm_engineer.tools.file_system.generate_diff", side_effect=Exception("Error"))
 @patch("builtins.open", new_callable=mock_open, read_data="old content")
 def test_apply_edits_error(mock_generate_diff, mock_open):
     original_content = "old content"

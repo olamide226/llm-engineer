@@ -3,10 +3,10 @@ import json
 import logging
 from typing import Any, Dict, List
 
-from src.console import SIMPLE, Markdown, Panel, console
-from src.global_state import global_state
-from src.providers import get_llm_provider
-from src.tools.file_system import (
+from llm_engineer.console import SIMPLE, Markdown, Panel, console
+from llm_engineer.global_state import global_state
+from llm_engineer.providers import get_llm_provider
+from llm_engineer.tools.file_system import (
     create_file,
     create_folder,
     edit_and_apply,
@@ -16,14 +16,14 @@ from src.tools.file_system import (
     read_multiple_files,
     stop_process,
 )
-from src.tools.tool_schemas.litellm_tool_schema import TOOL_SCHEMA
-from src.tools.utils import (
+from llm_engineer.tools.tool_schemas.litellm_tool_schema import TOOL_SCHEMA
+from llm_engineer.tools.utils import (
     display_token_usage,
     encode_image_to_base64,
     update_system_prompt,
 )
-from src.tools.web_search import tavily_search
-from src.types.litellm import ChatCompletionMessageToolCall, Message, ModelResponse
+from llm_engineer.tools.web_search import tavily_search
+from llm_engineer.types.litellm import ChatCompletionMessageToolCall, Message, ModelResponse
 
 
 async def send_to_ai_for_executing(code: str, execution_result: str):

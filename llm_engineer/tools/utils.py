@@ -8,12 +8,12 @@ from typing import Optional
 from PIL import Image
 import httpx
 
-from src.console import ROUNDED, Panel, Syntax, Table, console
-from src.global_state import TokenTracking, global_state
-from src.prompts.automode import AUTOMODE_SYSTEM_PROMPT
-from src.prompts.base_system_prompt import BASE_SYSTEM_PROMPT
-from src.providers import get_llm_provider
-from src.config import config
+from llm_engineer.console import ROUNDED, Panel, Syntax, Table, console
+from llm_engineer.global_state import TokenTracking, global_state
+from llm_engineer.prompts.automode import AUTOMODE_SYSTEM_PROMPT
+from llm_engineer.prompts.base_system_prompt import BASE_SYSTEM_PROMPT
+from llm_engineer.providers import get_llm_provider
+from llm_engineer.config import config
 from dotenv import load_dotenv, set_key
 
 

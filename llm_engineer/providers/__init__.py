@@ -1,7 +1,7 @@
-from src.providers.anthropic import AnthropicProvider
-from src.providers.custom import CustomEndpointProvider
-from src.providers.litellm import LiteLLMProvider
-from src.providers.llm_provider_base import LLMProvider
+from llm_engineer.providers.anthropic import AnthropicProvider
+from llm_engineer.providers.custom import CustomEndpointProvider
+from llm_engineer.providers.litellm import LiteLLMProvider
+from llm_engineer.providers.llm_provider_base import LLMProvider
 
 _provider_cache: dict[str, LLMProvider] = {}
 

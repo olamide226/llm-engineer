@@ -1,7 +1,7 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import model_validator
 
-from src.console import console, SIMPLE
+from llm_engineer.console import console, SIMPLE
 
 class Config(BaseSettings, extra="allow"):
     """

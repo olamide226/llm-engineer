@@ -1,13 +1,13 @@
 import pytest
 from unittest.mock import patch, Mock
-from src.main import start, chat_with_llm
-from src.global_state import global_state
+from llm_engineer.main import start, chat_with_llm
+from llm_engineer.global_state import global_state
 from unittest.mock import patch, AsyncMock, Mock
-from src.main import main, get_user_input, handle_autonomous_mode
+from llm_engineer.main import main, get_user_input, handle_autonomous_mode
 
 @pytest.fixture
 def mock_llm_provider():
-    with patch('src.tools.tool_agent.get_llm_provider') as mock_get_provider:
+    with patch('llm_engineer.tools.tool_agent.get_llm_provider') as mock_get_provider:
         mock_provider = Mock()
         mock_provider.create_message.return_value = Mock(
             content=[Mock(text="Test response")],
@@ -38,13 +38,13 @@ async def test_chat_with_llm_continuation(mock_llm_provider):
     assert global_state.CONTINUATION_EXIT_PHRASE in response
     assert exit_continuation
 
-@patch('src.main.asyncio.run')
+@patch('llm_engineer.main.asyncio.run')
 def test_start(mock_run):
     start()
     mock_run.assert_called_once()
     @pytest.mark.asyncio
     async def test_get_user_input():
-        with patch('src.main.PromptSession.prompt_async', new_callable=AsyncMock) as mock_prompt:
+        with patch('llm_engineer.main.PromptSession.prompt_async', new_callable=AsyncMock) as mock_prompt:
             mock_prompt.return_value = "Test input"
             result = await get_user_input()
             assert result == "Test input"
@@ -53,9 +53,9 @@ def test_start(mock_run):
     @pytest.mark.asyncio
     async def test_handle_autonomous_mode():
         user_input = "automode 3"
-        with patch('src.main.get_user_input', new_callable=AsyncMock) as mock_get_user_input, \
-             patch('src.main.chat_with_llm', new_callable=AsyncMock) as mock_chat_with_llm, \
-             patch('src.main.console.print') as mock_console_print:
+        with patch('llm_engineer.main.get_user_input', new_callable=AsyncMock) as mock_get_user_input, \
+             patch('llm_engineer.main.chat_with_llm', new_callable=AsyncMock) as mock_chat_with_llm, \
+             patch('llm_engineer.main.console.print') as mock_console_print:
             
             mock_get_user_input.side_effect = ["Goal", "Continue", "Continue", "AUTOMODE_COMPLETE"]
             mock_chat_with_llm.side_effect = [
@@ -72,12 +72,12 @@ def test_start(mock_run):
 
     @pytest.mark.asyncio
     async def test_main():
-        with patch('src.main.get_user_input', new_callable=AsyncMock) as mock_get_user_input, \
-             patch('src.main.console.print') as mock_console_print, \
-             patch('src.main.reset_conversation') as mock_reset_conversation, \
-             patch('src.main.save_chat') as mock_save_chat, \
-             patch('src.main.chat_with_llm', new_callable=AsyncMock) as mock_chat_with_llm, \
-             patch('src.main.handle_autonomous_mode', new_callable=AsyncMock) as mock_handle_autonomous_mode:
+        with patch('llm_engineer.main.get_user_input', new_callable=AsyncMock) as mock_get_user_input, \
+             patch('llm_engineer.main.console.print') as mock_console_print, \
+             patch('llm_engineer.main.reset_conversation') as mock_reset_conversation, \
+             patch('llm_engineer.main.save_chat') as mock_save_chat, \
+             patch('llm_engineer.main.chat_with_llm', new_callable=AsyncMock) as mock_chat_with_llm, \
+             patch('llm_engineer.main.handle_autonomous_mode', new_callable=AsyncMock) as mock_handle_autonomous_mode:
             
             mock_get_user_input.side_effect = [
                 "exit", "reset", "save chat", "image", "automode 3", "regular input"

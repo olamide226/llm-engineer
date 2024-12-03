@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional
 
 import httpx
 
-from src.providers.llm_provider_base import LLMProvider
+from llm_engineer.providers.llm_provider_base import LLMProvider
 
 
 class CustomEndpointProvider(LLMProvider):

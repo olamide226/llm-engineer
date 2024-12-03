@@ -15,11 +15,11 @@ from prompt_toolkit import PromptSession
 from prompt_toolkit.styles import Style
 
 # Local imports
-from src.console import Panel, console
-from src.global_state import global_state
-from src.tools.chat_session import save_chat
-from src.tools.tool_agent import chat_with_llm
-from src.tools.utils import reset_conversation
+from llm_engineer.console import Panel, console
+from llm_engineer.global_state import global_state
+from llm_engineer.tools.chat_session import save_chat
+from llm_engineer.tools.tool_agent import chat_with_llm
+from llm_engineer.tools.utils import reset_conversation
 
 
 async def get_user_input(prompt: str = "You: ") -> str:
@@ -247,7 +247,7 @@ def start():
     exceptions to ensure a graceful shutdown of the application.
     """
     try:
-        from src.config import config
+        from llm_engineer.config import config
         global_state.MAIN_MODEL = config.model_name
         global_state.LLM_PROVIDER = config.model_provider
         asyncio.run(main())

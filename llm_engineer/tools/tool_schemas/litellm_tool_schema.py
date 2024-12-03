@@ -1,6 +1,6 @@
 from typing import List
 
-from src.types.litellm import ToolsList
+from llm_engineer.types.litellm import ToolsList
 
 TOOL_SCHEMA: List[ToolsList] = [
     {

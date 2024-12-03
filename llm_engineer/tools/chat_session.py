@@ -1,7 +1,7 @@
 import datetime
 import json
 
-from src.global_state import global_state
+from llm_engineer.global_state import global_state
 
 
 def save_chat():

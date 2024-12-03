@@ -7,8 +7,8 @@ from typing import Any, Dict, List, Optional
 from anthropic import APIError, APIStatusError, AsyncAnthropic
 from dotenv import load_dotenv
 
-from src.console import Panel, console
-from src.providers.llm_provider_base import LLMProvider
+from llm_engineer.console import Panel, console
+from llm_engineer.providers.llm_provider_base import LLMProvider
 
 # Load environment variables from .env file
 load_dotenv()

@@ -1,14 +1,15 @@
 from typing import Any, Dict, List, Optional
 
-import litellm
+import litellm as liteLLM
+from litellm import OpenAIError
 
-from src.console import Panel, console
-from src.providers.llm_provider_base import LLMProvider
+from llm_engineer.console import Panel, console
+from llm_engineer.providers.llm_provider_base import LLMProvider
 
 
-class OpenAIProvider(LLMProvider):
+class AnthropicProvider(LLMProvider):
     """
-    OpenAI provider class for handling async completions and function calling.
+    Anthropic provider class for handling async completions and function calling with caching support.
     """
 
     async def create_message(
@@ -35,16 +36,15 @@ class OpenAIProvider(LLMProvider):
             Response: The generated message or result from the model.
         """
         try:
-            response = await litellm.acompletion(
+            response = await liteLLM.acompletion(
                 model=model,
                 messages=messages,
                 max_tokens=max_tokens,
-                system=system,
                 tools=tools,
                 tool_choice=tool_choice,
             )
             return response
-        except litellm.OpenAIError as exc:
+        except OpenAIError as exc:
             console.print(
                 Panel(
                     f"OpenAIError in AnthropicProvider: {str(exc)}",

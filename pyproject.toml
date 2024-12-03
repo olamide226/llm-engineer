@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "src"
+name = "llm_engineer"
 version = "0.0.1"
 description = ""
 authors = ["Olamide Adebayo <olamide.adebayo@publicissapient.com>"]
@@ -7,7 +7,7 @@ readme = "README.md"
 license = "MIT"
 
 [tool.poetry.scripts]
-start = "src.main:start"
+start = "llm_engineer.main:start"
 
 
 [tool.poetry.dependencies]

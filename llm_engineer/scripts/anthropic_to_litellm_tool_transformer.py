@@ -1,7 +1,7 @@
 from typing import List
 
-from src.tools.tool_schemas.anthropic_tool_schema import AnthropicTool
-from src.types.litellm import ToolsList
+from llm_engineer.tools.tool_schemas.anthropic_tool_schema import AnthropicTool
+from llm_engineer.types.litellm import ToolsList
 
 
 # Transform JSON data to match the litellm Pydantic model

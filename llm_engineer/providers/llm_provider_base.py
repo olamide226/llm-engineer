@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional
 
-from src.types.litellm import ModelResponse
+from llm_engineer.types.litellm import ModelResponse
 
 
 class LLMProvider(ABC):

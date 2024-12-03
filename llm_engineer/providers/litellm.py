@@ -2,10 +2,10 @@ import os
 from typing import Any, Dict, List, Optional
 
 from openai import AuthenticationError
-from src.console import SIMPLE, console
+from llm_engineer.console import SIMPLE, console
 
-from src.providers.llm_provider_base import LLMProvider
-from src.config import config
+from llm_engineer.providers.llm_provider_base import LLMProvider
+from llm_engineer.config import config
 import litellm
 
 
@@ -38,7 +38,7 @@ class LiteLLMProvider(LLMProvider):
             )
         except AuthenticationError as exc:
             if 401 == exc.status_code and "expired" in exc.message:
-                from src.tools.utils import refresh_token
+                from llm_engineer.tools.utils import refresh_token
                 console.print(SIMPLE, "Refreshing token...")
                 await refresh_token()
 
