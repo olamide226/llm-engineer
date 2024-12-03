@@ -1,12 +1,12 @@
 import os
 from typing import Any, Dict, List, Optional
 
-from openai import AuthenticationError
-from llm_engineer.console import SIMPLE, console
-
-from llm_engineer.providers.llm_provider_base import LLMProvider
-from llm_engineer.config import config
 import litellm
+from openai import AuthenticationError
+
+from llm_engineer.config import config
+from llm_engineer.console import SIMPLE, console
+from llm_engineer.providers.llm_provider_base import LLMProvider
 
 
 class LiteLLMProvider(LLMProvider):
@@ -23,22 +23,23 @@ class LiteLLMProvider(LLMProvider):
         tools: Optional[List[Dict[str, Any]]] = None,
         tool_choice: Optional[Dict[str, str]] = None,
     ) -> Any:
-        
+
         try:
             return await litellm.acompletion(
-            model=model,
-            messages=[{"role": "system", "content": system}] + messages,
-            max_tokens=max_tokens,
-            tools=tools,
-            tool_choice=tool_choice,
-            extra_headers={
-                "Authorization": "Bearer " + config.custom_api_token,
-            },
-            api_key="api-key",
+                model=model,
+                messages=[{"role": "system", "content": system}] + messages,
+                max_tokens=max_tokens,
+                tools=tools,
+                tool_choice=tool_choice,
+                extra_headers={
+                    "Authorization": "Bearer " + config.custom_api_token,
+                },
+                api_key="api-key",
             )
         except AuthenticationError as exc:
             if 401 == exc.status_code and "expired" in exc.message:
                 from llm_engineer.tools.utils import refresh_token
+
                 console.print(SIMPLE, "Refreshing token...")
                 await refresh_token()
 
@@ -51,4 +52,3 @@ class LiteLLMProvider(LLMProvider):
                     tool_choice=tool_choice,
                 )
             raise exc
-

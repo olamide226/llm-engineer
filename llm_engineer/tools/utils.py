@@ -5,16 +5,16 @@ import json
 import re
 from typing import Optional
 
-from PIL import Image
 import httpx
+from dotenv import load_dotenv, set_key
+from PIL import Image
 
+from llm_engineer.config import config
 from llm_engineer.console import ROUNDED, Panel, Syntax, Table, console
 from llm_engineer.global_state import TokenTracking, global_state
 from llm_engineer.prompts.automode import AUTOMODE_SYSTEM_PROMPT
 from llm_engineer.prompts.base_system_prompt import BASE_SYSTEM_PROMPT
 from llm_engineer.providers import get_llm_provider
-from llm_engineer.config import config
-from dotenv import load_dotenv, set_key
 
 
 def update_system_prompt(
@@ -246,7 +246,9 @@ async def generate_edit_instructions(
         edit_instructions = parse_search_replace_blocks(response.choices[0].message.content)
 
         # Update code editor memory (this is the only part that maintains some context between calls)
-        global_state.code_editor_memory.append(f"Edit Instructions for {file_path}:\n{response.choices[0].message.content}")
+        global_state.code_editor_memory.append(
+            f"Edit Instructions for {file_path}:\n{response.choices[0].message.content}"
+        )
 
         # Add the file to code_editor_files set
         global_state.code_editor_files.add(file_path)
@@ -285,6 +287,7 @@ def generate_diff(original, new, path):
 
     return highlighted_diff
 
+
 async def refresh_token() -> None:
     CUSTOM_REFRESH_TOKEN_URL = "/api/v1/auth/refreshtoken"
     url = config.custom_api_host + CUSTOM_REFRESH_TOKEN_URL
@@ -293,25 +296,24 @@ async def refresh_token() -> None:
         "app-key": config.custom_app_key,
     }
     cookies = {
-        'rt': config.custom_refresh_token,
+        "rt": config.custom_refresh_token,
     }
 
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers, cookies=cookies)
         print(response.request.headers)
         response.raise_for_status()  # Raise an exception for HTTP errors
-        
+
         # Extract Set-Cookie header
-        auth_tokens: str = response.headers.get('Set-Cookie')
+        auth_tokens: str = response.headers.get("Set-Cookie")
 
         # Parse Set-Cookie header to find rt token
         ref_token = next(
-            (item.split('=')[1] for item in auth_tokens.split(';') if item.strip().startswith('rt=')),
-            None
+            (item.split("=")[1] for item in auth_tokens.split(";") if item.strip().startswith("rt=")), None
         )
         # Extract accessToken from JSON response
         response_data = response.json()
-        auth_token = response_data.get('accessToken')
+        auth_token = response_data.get("accessToken")
 
         # Update configuration
         config.custom_refresh_token = ref_token
@@ -320,5 +322,5 @@ async def refresh_token() -> None:
         # Write the updated values back to the .env file
         env_file = ".env"
         load_dotenv(env_file)
-        set_key(env_file, 'CUSTOM_API_TOKEN', auth_token)
-        set_key(env_file, 'CUSTOM_REFRESH_TOKEN', ref_token)
+        set_key(env_file, "CUSTOM_API_TOKEN", auth_token)
+        set_key(env_file, "CUSTOM_REFRESH_TOKEN", ref_token)

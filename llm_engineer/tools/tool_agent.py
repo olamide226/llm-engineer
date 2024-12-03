@@ -23,7 +23,11 @@ from llm_engineer.tools.utils import (
     update_system_prompt,
 )
 from llm_engineer.tools.web_search import tavily_search
-from llm_engineer.types.litellm import ChatCompletionMessageToolCall, Message, ModelResponse
+from llm_engineer.types.litellm import (
+    ChatCompletionMessageToolCall,
+    Message,
+    ModelResponse,
+)
 
 
 async def send_to_ai_for_executing(code: str, execution_result: str):
@@ -228,7 +232,13 @@ async def chat_with_llm(user_input: str, image_path=None, current_iteration=None
     )
 
     assistant_response = await handle_tool_use(
-        tool_uses, current_conversation, filtered_conversation_history, response.choices[0].message, assistant_response, current_iteration, max_iterations
+        tool_uses,
+        current_conversation,
+        filtered_conversation_history,
+        response.choices[0].message,
+        assistant_response,
+        current_iteration,
+        max_iterations,
     )
     if assistant_response:
         current_conversation.append({"role": "assistant", "content": assistant_response})
@@ -249,6 +259,7 @@ async def create_message(
     tools: List[Dict[str, Any]] = None,
     tool_choice: str = "auto",
 ) -> ModelResponse:
+    """Create a message using the specified model and parameters."""
     llm_provider = get_llm_provider(global_state.LLM_PROVIDER)
     response = await llm_provider.create_message(
         model=model, system=system, messages=messages, tools=tools, tool_choice=tool_choice
@@ -339,7 +350,7 @@ async def handle_tool_use(
             global_state.tool_checker_tokens.output += tool_response.usage.completion_tokens
 
             tool_checker_response = ""
-            
+
             if tool_response.choices[0].message.content:
                 tool_checker_response += tool_response.choices[0].message.content
             console.print(
@@ -360,6 +371,7 @@ async def handle_tool_use(
 
 
 async def handle_image_processing(image_path: str, user_input: str, current_conversation: List[Dict[str, Any]]):
+    """Handle the processing of an image file."""
     console.print(
         Panel(
             f"Processing image at path: {image_path}",

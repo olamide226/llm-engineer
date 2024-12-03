@@ -89,7 +89,6 @@ class GlobalState(BaseModel):
     CODE_EXECUTION_MODEL: str = "gpt-4o"
 
 
-
 global_state = GlobalState()
 
 __all__ = ["global_state"]

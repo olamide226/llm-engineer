@@ -1,12 +1,11 @@
 from llm_engineer.providers.anthropic import AnthropicProvider
-from llm_engineer.providers.custom import CustomEndpointProvider
 from llm_engineer.providers.litellm import LiteLLMProvider
 from llm_engineer.providers.llm_provider_base import LLMProvider
 
 _provider_cache: dict[str, LLMProvider] = {}
 
 
-def get_llm_provider(provider_name: str, **kwargs):
+def get_llm_provider(provider_name: str):
     """
     Retrieve an instance of an LLMProvider based on the given provider name.
 
@@ -40,6 +39,12 @@ def get_llm_provider(provider_name: str, **kwargs):
         provider = AnthropicProvider()
     elif provider_name == "custom":
         provider = LiteLLMProvider()
+    elif provider_name == "openai":
+        provider = LiteLLMProvider()
+    elif provider_name == "ollama":
+        provider = LiteLLMProvider()
+    elif provider_name == "grok":
+        provider = GrokProvider()
     else:
         raise ValueError(f"Unknown provider: {provider_name}")
 

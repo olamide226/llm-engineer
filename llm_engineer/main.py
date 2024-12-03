@@ -219,7 +219,7 @@ async def main():
 
             if os.path.isfile(image_path):
                 user_input = await get_user_input("You (prompt for image): ")
-                response, _ = await chat_with_llm(user_input, image_path)
+                _response, _ = await chat_with_llm(user_input, image_path)
             else:
                 console.print(
                     Panel(
@@ -236,31 +236,4 @@ async def main():
             console.print(Panel("Exited autonomous mode. Returning to regular chat.", style="green"))
         else:
             # Process regular user input
-            response, _ = await chat_with_llm(user_input)
-
-
-def start():
-    """
-    Start the chat loop.
-
-    This function initializes the asyncio event loop and handles any KeyboardInterrupt
-    exceptions to ensure a graceful shutdown of the application.
-    """
-    try:
-        from llm_engineer.config import config
-        global_state.MAIN_MODEL = config.model_name
-        global_state.LLM_PROVIDER = config.model_provider
-        asyncio.run(main())
-    except KeyboardInterrupt:
-        console.print(
-            Panel(
-                "Thank you for chatting. Goodbye!",
-                title_align="left",
-                title="Goodbye",
-                style="bold green",
-            )
-        )
-
-
-if __name__ == "__main__":
-    start()
+            _response, _ = await chat_with_llm(user_input)

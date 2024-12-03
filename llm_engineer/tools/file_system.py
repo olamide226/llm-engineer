@@ -8,7 +8,14 @@ import sys
 import venv
 from typing import Tuple
 
-from llm_engineer.console import BarColumn, Panel, Progress, SpinnerColumn, TextColumn, console
+from llm_engineer.console import (
+    BarColumn,
+    Panel,
+    Progress,
+    SpinnerColumn,
+    TextColumn,
+    console,
+)
 from llm_engineer.global_state import global_state
 from llm_engineer.tools.utils import generate_diff, generate_edit_instructions
 

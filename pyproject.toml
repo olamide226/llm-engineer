@@ -8,6 +8,7 @@ license = "MIT"
 
 [tool.poetry.scripts]
 start = "llm_engineer.main:start"
+codemason = "llm_engineer.cli:app"
 
 
 [tool.poetry.dependencies]
@@ -22,6 +23,7 @@ pydantic = "^2.8.2"
 litellm = "^1.49.2"
 httpx = "^0.27.2"
 pydantic-settings = "^2.6.0"
+typer = "^0.14.0"
 
 
 [tool.poetry.group.dev.dependencies]
