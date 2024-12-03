@@ -1,4 +1,5 @@
 from llm_engineer.providers.anthropic import AnthropicProvider
+from llm_engineer.providers.grok_provider import GrokProvider
 from llm_engineer.providers.litellm import LiteLLMProvider
 from llm_engineer.providers.llm_provider_base import LLMProvider
 

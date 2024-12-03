@@ -3,9 +3,9 @@ from typing import Any, Dict, List, Optional
 import litellm
 from openai import AsyncOpenAI
 
+from llm_engineer.config import config
 from llm_engineer.console import Panel, console
 from llm_engineer.providers.llm_provider_base import LLMProvider
-from llm_engineer.config import config
 
 
 class GrokProvider(LLMProvider):
@@ -15,9 +15,9 @@ class GrokProvider(LLMProvider):
 
     def __init__(self):
         self.client = AsyncOpenAI(
-                api_key=config.openai_api_key,
-                base_url="https://api.x.ai/v1",
-                )
+            api_key=config.openai_api_key,
+            base_url="https://api.x.ai/v1",
+        )
 
     async def create_message(
         self,
@@ -55,11 +55,7 @@ class GrokProvider(LLMProvider):
             # )
             messages.insert(0, {"role": "system", "content": system})
             response = await self.client.chat.completions.create(
-                model=model,
-                messages=messages,
-                max_tokens=max_tokens,
-                tools=tools,
-                tool_choice=tool_choice
+                model=model, messages=messages, max_tokens=max_tokens, tools=tools, tool_choice=tool_choice
             )
             return response
         except litellm.OpenAIError as exc:
