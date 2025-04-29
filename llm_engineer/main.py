@@ -237,3 +237,21 @@ async def main():
         else:
             # Process regular user input
             _response, _ = await chat_with_llm(user_input)
+
+def start():
+    """Start the chat loop."""
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        console.print(
+            Panel(
+                "Thank you for chatting. Goodbye!",
+                title_align="left",
+                title="Goodbye",
+                style="bold green",
+            )
+        )
+
+
+if __name__ == "__main__":
+    start()

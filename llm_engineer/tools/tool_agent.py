@@ -246,7 +246,7 @@ async def chat_with_llm(user_input: str, image_path=None, current_iteration=None
     global_state.conversation_history = messages + [{"role": "assistant", "content": assistant_response}]
 
     # Display token usage at the end
-    display_token_usage()
+    # display_token_usage()
 
     return assistant_response, exit_continuation
 

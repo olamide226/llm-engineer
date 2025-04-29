@@ -29,8 +29,7 @@ def get_llm_provider(provider_name: str):
         - "anthropic": Returns an instance of AnthropicProvider.
         - "litellm": Returns an instance of LiteLLMProvider.
         - "custom": Returns an instance of CustomModelProvider with a custom client.
-        - "custom_endpoint": Returns an instance of CustomEndpointProvider with the
-                             specified endpoint URL.
+        - "custom_endpoint": Returns an instance of CustomEndpointProvider with the specified endpoint URL.
     """
     # TODO: Move to config validation at the start of the program
     if provider_name in _provider_cache:
@@ -44,7 +43,7 @@ def get_llm_provider(provider_name: str):
         provider = LiteLLMProvider()
     elif provider_name == "ollama":
         provider = LiteLLMProvider()
-    elif provider_name == "grok":
+    elif provider_name == "xai":
         provider = GrokProvider()
     else:
         raise ValueError(f"Unknown provider: {provider_name}")

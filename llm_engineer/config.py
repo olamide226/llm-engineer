@@ -29,6 +29,9 @@ class Config(BaseSettings, extra="allow"):
     @model_validator(mode="after")
     def check_settings(self) -> "Config":
         """Validate the configuration settings."""
+        if self.model_name not in models:
+            console.print(f"Invalid model name: {self.model_name}. Please choose from: {models}")
+            raise SystemExit(1)
         if self.model_provider == "custom" and (
             self.custom_api_host == "" or self.custom_api_token == "" or self.custom_refresh_token == ""
         ):
@@ -42,7 +45,7 @@ class Config(BaseSettings, extra="allow"):
                 "OpenAI API base URL not found in environment variables. Please set the OpenAI API base URL to use provider.",
             )
             raise SystemExit(1)
-        if self.model_provider not in ["custom", "anthropic", "openai", "ollama"]:
+        if self.model_provider not in model_providers:
             console.print(f"Invalid model provider: {self.model_provider}. Please choose from: {model_providers}")
             raise SystemExit(1)
 
@@ -64,7 +67,7 @@ class Config(BaseSettings, extra="allow"):
         return self
 
 
-models = ["gpt-4o", "gpt-4o-mini", "PS", "claude-3-haiku", "claude-3-5-sonnet", "ollama_chat/llama3.1"]
-model_providers = ["PS", "anthropic", "openai", "ollama", "custom"]
+models = ["gpt-4o", "gpt-4o-mini", "PS", "claude-3-haiku", "claude-3-5-sonnet", "ollama_chat/llama3.1", "grok-beta"]
+model_providers = ["PS", "anthropic", "openai", "ollama", "custom", "xai"]
 
 config = Config()
